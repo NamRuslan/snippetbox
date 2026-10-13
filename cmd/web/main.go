@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log/slog"
 	"net/http"
 	"os"
+
+	_ "github.com/jackc/pgx/stdlib"
 )
 
 type application struct {
@@ -13,16 +16,41 @@ type application struct {
 
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
+
+	dsn := flag.String("dsn", "postgres://web:pass@localhost:5432/snippetbox?sslmode=disable", "PostgreSQL data source name")
+
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 
+	db, err := openDB(*dsn)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	app := &application{logger: logger}
 
 	logger.Info("starting server", "addr", *addr)
-	err := http.ListenAndServe(*addr, app.routes())
+	err = http.ListenAndServe(*addr, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
+}
+
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, nil
 }
