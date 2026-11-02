@@ -5,6 +5,8 @@ go 1.26.0
 require github.com/jackc/pgx v3.6.2+incompatible
 
 require (
+	github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de // indirect
+	github.com/alexedwards/scs/v2 v2.9.0 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/go-playground/form/v4 v4.5.1 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
