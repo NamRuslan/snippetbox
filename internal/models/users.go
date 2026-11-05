@@ -2,7 +2,12 @@ package models
 
 import (
 	"database/sql"
+	"errors"
+	"strings"
 	"time"
+
+	"github.com/jackc/pgx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -18,6 +23,25 @@ type UserModel struct {
 }
 
 func (m *UserModel) Insert(name, email, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+
+	stmt := `INSERT INTO users (name, email, hashed_password, created)
+			VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`
+
+	_, err = m.DB.Exec(stmt, name, email, hashedPassword)
+	if err != nil {
+		if pgxError, ok := errors.AsType[pgx.PgError](err); ok {
+			if pgxError.Code == "23505" && strings.Contains(pgxError.Message, "users_uc_email") {
+				return ErrDuplicateEmail
+			}
+		}
+
+		return err
+	}
+
 	return nil
 }
 
