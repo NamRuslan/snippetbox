@@ -222,3 +222,17 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 func ping(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
+
+func (app *application) accountViewGet(w http.ResponseWriter, r *http.Request) {
+	id := app.sessionManager.GetInt(r.Context(), authenticatedUserIDKey)
+	user, err := app.users.GetById(id)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	td := app.newTemplateData(r)
+	td.User = user
+
+	app.render(w, r, http.StatusOK, "account.html", td)
+}

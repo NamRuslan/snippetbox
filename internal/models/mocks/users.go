@@ -1,11 +1,23 @@
 package mocks
 
-import "snippetbox.namruslan.com/internal/models"
+import (
+	"time"
+
+	"snippetbox.namruslan.com/internal/models"
+)
 
 const AuthenticatedEmail = "alice@example.com"
 const AuthenticatedPassword = "pa$$word"
 
 type UserModel struct {
+}
+
+var mockUser = models.User{
+	ID:             1,
+	Name:           "Alice",
+	Email:          AuthenticatedEmail,
+	HashedPassword: nil,
+	Created:        time.Now(),
 }
 
 func (m *UserModel) Insert(name, email, password string) error {
@@ -30,5 +42,14 @@ func (m *UserModel) Exists(id int) (bool, error) {
 		return true, nil
 	default:
 		return false, nil
+	}
+}
+
+func (m *UserModel) GetById(id int) (models.User, error) {
+	switch id {
+	case 1:
+		return mockUser, nil
+	default:
+		return models.User{}, models.ErrNoRecord
 	}
 }

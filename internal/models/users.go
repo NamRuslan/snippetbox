@@ -26,6 +26,7 @@ type UserModelInterface interface {
 	Insert(name, email, password string) error
 	Authenticate(email, password string) (int, error)
 	Exists(id int) (bool, error)
+	GetById(id int) (User, error)
 }
 
 func (m *UserModel) Insert(name, email, password string) error {
@@ -80,4 +81,12 @@ func (m *UserModel) Exists(id int) (bool, error) {
 	stmt := "SELECT EXISTS(SELECT true FROM users WHERE id = $1)"
 	err := m.DB.QueryRow(stmt, id).Scan(&exists)
 	return exists, err
+}
+
+func (m *UserModel) GetById(id int) (User, error) {
+	stmt := "SELECT U.id, U.name, U.email, U.hashed_password, U.created FROM users U WHERE id = $1"
+
+	var user User
+	err := m.DB.QueryRow(stmt, id).Scan(&user.ID, &user.Name, &user.Email, &user.HashedPassword, &user.Created)
+	return user, err
 }
