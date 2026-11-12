@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-playground/form/v4"
@@ -17,8 +18,16 @@ func (app *application) serverError(w http.ResponseWriter, r *http.Request, err 
 		uri    = r.URL.RequestURI()
 	)
 
-	app.logger.Error(err.Error(), "method", method, "uri", uri)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	errmsg := err.Error()
+	clientmsg := http.StatusText(http.StatusInternalServerError)
+
+	if app.isDebug {
+		errmsg += "\n" + string(debug.Stack())
+		clientmsg += "\n" + string(debug.Stack())
+	}
+
+	app.logger.Error(errmsg, "method", method, "uri", uri)
+	http.Error(w, clientmsg, http.StatusInternalServerError)
 }
 
 func (app *application) clientError(w http.ResponseWriter, status int) {
