@@ -2,6 +2,9 @@ package mocks
 
 import "snippetbox.namruslan.com/internal/models"
 
+const AuthenticatedEmail = "alice@example.com"
+const AuthenticatedPassword = "pa$$word"
+
 type UserModel struct {
 }
 
@@ -15,7 +18,7 @@ func (m *UserModel) Insert(name, email, password string) error {
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {
-	if email == "alice@example.com" && password == "pa$$word" {
+	if email == AuthenticatedEmail && password == AuthenticatedPassword {
 		return 1, nil
 	}
 	return 0, models.ErrInvalidCredentials

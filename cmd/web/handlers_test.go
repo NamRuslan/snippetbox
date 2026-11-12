@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"snippetbox.namruslan.com/internal/assert"
+	"snippetbox.namruslan.com/internal/models/mocks"
 )
 
 func TestPing(t *testing.T) {
@@ -126,8 +127,7 @@ func TestUserSignup(t *testing.T) {
 	ts := newTestServer(t, app.routes())
 	defer ts.Close()
 
-	_, _, body := ts.get(t, "/user/signup")
-	validCSRFToken := extractCSRFToken(t, body)
+	validCSRFToken := getCsrfToken(t, ts)
 
 	const (
 		validName     = "Bob"
@@ -230,6 +230,59 @@ func TestUserSignup(t *testing.T) {
 			if tt.wantFormTag != "" {
 				assert.StringContains(t, body, tt.wantFormTag)
 			}
+		})
+	}
+}
+
+func getCsrfToken(t *testing.T, ts *testServer) string {
+	_, _, body := ts.get(t, "/user/signup")
+	return extractCSRFToken(t, body)
+}
+
+func TestGetSnippetCreate(t *testing.T) {
+	app := newTestApplication(t)
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	tests := []struct {
+		name         string
+		isAuth       bool
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Unauthenticated user",
+			isAuth:       false,
+			expectedCode: http.StatusSeeOther,
+			expectedBody: "/user/login",
+		},
+		{
+			name:         "Authenticated user",
+			isAuth:       true,
+			expectedCode: http.StatusOK,
+			expectedBody: "/snippet/create",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.isAuth {
+				token := getCsrfToken(t, ts)
+				form := url.Values{}
+				form.Add("email", mocks.AuthenticatedEmail)
+				form.Add("password", mocks.AuthenticatedPassword)
+				form.Add("csrf_token", token)
+
+				code, _, _ := ts.post(t, "/user/login", form)
+				if code != http.StatusSeeOther {
+					t.Errorf("Unexpected response status: %v", code)
+				}
+			}
+
+			code, _, body := ts.get(t, "/snippet/create")
+
+			assert.Equal(t, code, tt.expectedCode)
+			assert.StringContains(t, body, tt.expectedBody)
 		})
 	}
 }

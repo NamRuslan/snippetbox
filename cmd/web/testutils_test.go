@@ -78,6 +78,15 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, strin
 	return rs.StatusCode, rs.Header, string(body)
 }
 
+func (ts *testServer) getWithRequest(t *testing.T, r *http.Request) (int, http.Header, string) {
+	rs, err := ts.Client().Do(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := extractBody(t, rs)
+	return rs.StatusCode, rs.Header, body
+}
+
 func (ts *testServer) post(t *testing.T, urlPath string, form url.Values) (int, http.Header, string) {
 	rq, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -107,4 +116,13 @@ func extractCSRFToken(t *testing.T, body string) string {
 		t.Fatal("no csrf token found in body")
 	}
 	return html.UnescapeString(matches[1])
+}
+
+func extractBody(t *testing.T, rs *http.Response) string {
+	defer rs.Body.Close()
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(body)
 }
