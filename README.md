@@ -24,7 +24,8 @@
     * `net/http` - базовая работа с HTTP-сервером, настройка таймаутов (`ReadTimeout`, `WriteTimeout`, `IdleTimeout`) и TLS (HTTPS).
     * `justinas/alice` - композиция цепочек middleware (логирование запросов, восстановление после паник, установка security-заголовков, аутентификация).
 * **База данных:**
-    * `database/sql` + `pgx` - работа c PostgreSQL БД и ее синтаксисом;
+    * `database/sql` + `pgx` - работа c PostgreSQL БД и ее синтаксисом (ветка master);
+    * `database/sql` + `gorm` - работа с PostgreSQL БД на основе gorm (ветка gorm).
 * **Безопасность и сессии:**
     * `alexedwards/scs/v2` - управление серверными сессиями с хранением состояния в БД.
     * `justinas/nosurf` - защита от CSRF атак.
