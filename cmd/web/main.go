@@ -29,13 +29,17 @@ type application struct {
 
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String("dsn", "postgres://web:pass@localhost:5432/snippetbox?sslmode=disable", "PostgreSQL data source name")
+	dsn := flag.String("dsn", "", "PostgreSQL data source name")
 	isDebugFlag := flag.Bool("debug", false, "Enable debug mode")
 
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	if *dsn == "" {
+		logger.Error("Data source name has not been set")
+		os.Exit(1)
+	}
 	db, err := openDB(*dsn)
 	if err != nil {
 		logger.Error(err.Error())
